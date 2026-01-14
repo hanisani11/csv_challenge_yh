@@ -18,13 +18,13 @@ pip install -r requirements.txt
 
 ## Extra Setup
 
-root/
-├─ data/
-|  └─ train/
-|     ├─ images/        # .h5 image files (long_img & trans_img)
-|     └─ labels/        # _label.h5 files (long_mask, trans_mask, cls)
-└─ pretrain/ 
-   └─ echocare_encoder.pth    # Pre-trained Echocare encoder weights
+    root/
+    ├─ data/
+    |  └─ train/
+    |     ├─ images/        # .h5 image files (long_img & trans_img)
+    |     └─ labels/        # _label.h5 files (long_mask, trans_mask, cls)
+    └─ pretrain/ 
+        └─ echocare_encoder.pth    # Pre-trained Echocare encoder weights
 
 
 ---
