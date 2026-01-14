@@ -11,7 +11,7 @@ The current setup supports both **classification and segmentation training** and
 We recommend using **conda** to manage the environment.
 
 Use
-pip install -r requirements.txt
+    pip install -r requirements.txt
 
 
 ---
