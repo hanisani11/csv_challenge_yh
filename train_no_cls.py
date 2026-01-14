@@ -332,9 +332,41 @@ def build_logger(save_path: str):
     return logger
 
 def get_model(args):
-    if args.model == "Echocare_sep_dec":
-        return Echocare_sep_dec_UniMatch(in_chns=1, seg_class_num=args.seg_num_classes, cls_class_num=args.cls_num_classes, encoder_pth=args.echo_care_ckpt)
-    return None
+    """
+    Return model instance based on args.model.
+      - 'Echocare' -> Echocare_UniMatch(...) (uses encoder checkpoint)
+      - 'UNet'     -> UNetTwoView(...)
+    """
+    if args.model == "Echocare":
+        model = Echocare_UniMatch(
+            in_chns=1,
+            seg_class_num=args.seg_num_classes,
+            cls_class_num=args.cls_num_classes,
+            encoder_pth=args.echo_care_ckpt,
+        )
+    elif args.model == "Echocare_sep_dec":
+        model = Echocare_sep_dec_UniMatch(
+            in_chns=1,
+            seg_class_num=args.seg_num_classes,
+            cls_class_num=args.cls_num_classes,
+            encoder_pth=args.echo_care_ckpt,
+        )
+
+    elif args.model == "UNet":
+        model = UNetTwoView(
+            in_chns=1,
+            seg_class_num=args.seg_num_classes,
+            cls_class_num=args.cls_num_classes,
+        )
+    elif args.model == "UNet++":
+        model = UNetPlusPlusTwoView(
+            in_chns=1,
+            seg_class_num=args.seg_num_classes,
+            cls_class_num=args.cls_num_classes,
+        )
+    else:
+        raise ValueError(f"Unknown model choice: {args.model}")
+    return model
 
 if __name__ == "__main__":
     main()
