@@ -22,6 +22,8 @@ place echocare_encoder.pth
 -->
 pretrain/echocare_encoder.pth
 
+---
+
 ## Training (Segmentation Only, No Classification)
 
 To train the model without classification head, use train_no_cls.py.
