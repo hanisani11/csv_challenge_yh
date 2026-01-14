@@ -33,9 +33,9 @@ root/
 
 Generate a balanced validation set and JSON splits:
 
-''' bash
-python split_train_valid_fold.py --root ./data --seed 2026 --val_size 50
-'''
+
+    python split_train_valid_fold.py --root ./data --seed 2026 --val_size 50
+
 
 This creates:
 
@@ -51,16 +51,15 @@ under the data/ directory.
 
 To train the model without classification head, use train_no_cls.py.
 
-'''bash
-python train_no_cls.py \
-  --train-labeled-json ./data/train_labeled.json \
-  --train-unlabeled-json ./data/train_unlabeled.json \
-  --valid-labeled-json ./data/valid.json \
-  --model Echocare_sep_dec \
-  --echo_care_ckpt ./pretrain/echocare_encoder.pth \
-  --save_path ./checkpoints_sep_nocls \
-  --gpu 0 \
-  --train_epochs 100 \
-  --batch_size 2
-  '''
+
+    python train_no_cls.py \
+        --train-labeled-json ./data/train_labeled.json \
+        --train-unlabeled-json ./data/train_unlabeled.json \
+        --valid-labeled-json ./data/valid.json \
+        --model Echocare_sep_dec \
+        --echo_care_ckpt ./pretrain/echocare_encoder.pth \
+        --save_path ./checkpoints_sep_nocls \
+        --gpu 0 \
+        --train_epochs 100 \
+        --batch_size 2
 
