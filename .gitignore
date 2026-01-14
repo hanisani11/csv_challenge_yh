@@ -1,0 +1,45 @@
+# =====================
+# Python
+# =====================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =====================
+# Virtual Environments
+# =====================
+.env
+.venv
+venv/
+ENV/
+
+# =====================
+# Logs & checkpoints
+# =====================
+logs/
+tensorboard/
+runs/
+checkpoints_UNetpp/
+checkpoints_sep_dec/
+*.log
+*.pth
+*.ckpt
+
+# =====================
+# Data
+# =====================
+data/
+datasets/
+*.nii
+*.nii.gz
+*.npz
+*.h5
+
+# =====================
+# OS / Editor
+# =====================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
