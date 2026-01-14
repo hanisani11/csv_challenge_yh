@@ -18,9 +18,32 @@ pip install -r requirements.txt
 
 ## Extra Setup
 
-place echocare_encoder.pth 
--->
-pretrain/echocare_encoder.pth
+root/
+├─ data/
+|  └─ train/
+|     ├─ images/        # .h5 image files (long_img & trans_img)
+|     └─ labels/        # _label.h5 files (long_mask, trans_mask, cls)
+└─ pretrain/ 
+   └─ echocare_encoder.pth    # Pre-trained Echocare encoder weights
+
+
+---
+
+## Create Local Train / Validation Split
+
+Generate a balanced validation set and JSON splits:
+
+''' bash
+python split_train_valid_fold.py --root ./data --seed 2026 --val_size 50
+'''
+
+This creates:
+
+    train_labeled.json
+    train_unlabeled.json
+    valid.json
+
+under the data/ directory.
 
 ---
 
@@ -28,6 +51,7 @@ pretrain/echocare_encoder.pth
 
 To train the model without classification head, use train_no_cls.py.
 
+'''bash
 python train_no_cls.py \
   --train-labeled-json ./data/train_labeled.json \
   --train-unlabeled-json ./data/train_unlabeled.json \
@@ -38,4 +62,5 @@ python train_no_cls.py \
   --gpu 0 \
   --train_epochs 100 \
   --batch_size 2
+  '''
 
