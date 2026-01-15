@@ -10,6 +10,10 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 from dataset.transform import random_rot_flip, random_rotate, blur, obtain_cutmix_box
+from scipy.ndimage import distance_transform_edt
+from scipy import ndimage
+
+
 
 
 class CSVSemiDataset(Dataset):
@@ -78,39 +82,52 @@ class CSVSemiDataset(Dataset):
             long_img, trans_img = self._read_pair(image_h5_file)
             long_mask, trans_mask, cls = self._read_label(label_h5_file)
 
-            return (torch.from_numpy(long_img).unsqueeze(0).float(),
-                    torch.from_numpy(trans_img).unsqueeze(0).float(),
-                    torch.from_numpy(long_mask).long(),
-                    torch.from_numpy(trans_mask).long(),
-                    torch.tensor(cls).long())
+            dist_long = self._plaque_dist_map(long_mask, plaque_idx=1)
+            dist_trans = self._plaque_dist_map(trans_mask, plaque_idx=1)
+
+            return (
+                torch.from_numpy(long_img).unsqueeze(0).float(),
+                torch.from_numpy(trans_img).unsqueeze(0).float(),
+                torch.from_numpy(long_mask).long(),
+                torch.from_numpy(trans_mask).long(),
+                torch.tensor(cls).long(),
+                torch.from_numpy(dist_long).float(),
+                torch.from_numpy(dist_trans).float(),
+            )
 
         elif self.mode == 'train_l':
             image_h5_file, label_h5_file = case['image'], case['label']
             long_img, trans_img = self._read_pair(image_h5_file)
             long_mask, trans_mask, cls = self._read_label(label_h5_file)
 
-            # Apply same-type augmentation to long/trans (each can be independently random)
-            if random.random() > 0.5:
-                long_img, long_mask = random_rot_flip(long_img, long_mask)
-                trans_img, trans_mask = random_rot_flip(trans_img, trans_mask)
-            elif random.random() > 0.5:
-                long_img, long_mask = random_rotate(long_img, long_mask)
-                trans_img, trans_mask = random_rotate(trans_img, trans_mask)
+            # --- NEW: plaque distance maps (GT 기반, 한번만 계산) ---
+            dist_long = self._plaque_dist_map(long_mask, plaque_idx=1)
+            dist_trans = self._plaque_dist_map(trans_mask, plaque_idx=1)
+
+            # Apply same-type augmentation to img/mask/dist
+            long_img, long_mask, dist_long = self._apply_aug_pair(long_img, long_mask, dist_long)
+            trans_img, trans_mask, dist_trans = self._apply_aug_pair(trans_img, trans_mask, dist_trans)
 
             # Resize to target size
             x, y = long_img.shape
             long_img = zoom(long_img, (self.size / x, self.size / y), order=0)
             long_mask = zoom(long_mask, (self.size / x, self.size / y), order=0)
+            dist_long = zoom(dist_long, (self.size / x, self.size / y), order=1)  # NEW
 
             x2, y2 = trans_img.shape
             trans_img = zoom(trans_img, (self.size / x2, self.size / y2), order=0)
             trans_mask = zoom(trans_mask, (self.size / x2, self.size / y2), order=0)
+            dist_trans = zoom(dist_trans, (self.size / x2, self.size / y2), order=1)  # NEW
 
-            return (torch.from_numpy(long_img).unsqueeze(0).float(),
-                    torch.from_numpy(trans_img).unsqueeze(0).float(),
-                    torch.from_numpy(long_mask).long(),
-                    torch.from_numpy(trans_mask).long(),
-                    torch.tensor(cls).long())
+            return (
+                torch.from_numpy(long_img).unsqueeze(0).float(),
+                torch.from_numpy(trans_img).unsqueeze(0).float(),
+                torch.from_numpy(long_mask).long(),
+                torch.from_numpy(trans_mask).long(),
+                torch.tensor(cls).long(),
+                torch.from_numpy(dist_long).float(),   # NEW: [H,W]
+                torch.from_numpy(dist_trans).float(),  # NEW: [H,W]
+            )
 
         elif self.mode == 'train_u':
             image_h5_file = case['image']
@@ -151,6 +168,49 @@ class CSVSemiDataset(Dataset):
 
     def __len__(self):
         return len(self.case_list)
+    
+    def _plaque_dist_map(self, mask: np.ndarray, plaque_idx: int = 1) -> np.ndarray:
+        """
+        mask: [H,W] int64 (0=bg, 1=plaque, 2=vessel)
+        return dist: [H,W] float32, distance to nearest plaque pixel (0 inside plaque)
+        """
+        plaque = (mask == plaque_idx)
+        # distance_transform_edt는 "True" 위치까지의 거리 계산을 위해 보통 반전 사용
+        # plaque=True인 곳 dist=0이 되게 하려면 ~plaque에 edt 적용
+        dist = distance_transform_edt(~plaque).astype(np.float32)
+        return dist
+
+    def _apply_aug_pair(self, img, mask=None, dist=None):
+        """
+        random_rot_flip / random_rotate 를 img, mask, dist에 일관되게 적용
+        dist는 연속값이므로 rotate는 order=1이 더 적절.
+        """
+        if random.random() > 0.5:
+            # rot90 + flip
+            k = np.random.randint(0, 4)
+            axis = np.random.randint(0, 2)
+            img = np.rot90(img, k)
+            img = np.flip(img, axis=axis).copy()
+            if mask is not None:
+                mask = np.rot90(mask, k)
+                mask = np.flip(mask, axis=axis).copy()
+            if dist is not None:
+                dist = np.rot90(dist, k)
+                dist = np.flip(dist, axis=axis).copy()
+            return img, mask, dist
+
+        elif random.random() > 0.5:
+            # rotate
+            angle = np.random.randint(-20, 20)
+            img = ndimage.rotate(img, angle, order=0, reshape=False)
+            if mask is not None:
+                mask = ndimage.rotate(mask, angle, order=0, reshape=False)
+            if dist is not None:
+                dist = ndimage.rotate(dist, angle, order=1, reshape=False)  # dist는 연속값
+            return img, mask, dist
+
+        return img, mask, dist
+
 
 
 
