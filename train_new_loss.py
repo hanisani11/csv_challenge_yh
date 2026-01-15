@@ -488,6 +488,8 @@ def train_one_epoch(
                 f"Loss_s: {total_loss_s.avg:.3f} | "
                 f"Loss_fp: {total_loss_fp.avg:.3f} | "
                 f"Loss_extra_cls: {total_loss_extra_cls.avg:.3f} | "
+                f"Loss_far_plaque: {total_loss_far.avg:.3f} | "
+                f"Loss_cldice_vessel: {total_loss_cldice.avg:.3f} | "
                 f"MaskRatio: {total_mask_ratio.avg:.3f}"
             )
 
