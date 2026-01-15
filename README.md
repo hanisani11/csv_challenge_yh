@@ -63,3 +63,20 @@ To train the model without classification head, use train_no_cls.py.
         --train_epochs 100 \
         --batch_size 2
 
+---
+
+## Training (Segmentation & classification with sep dec *plaque weighted, cldice_ves loss added*)
+
+To train the model descreibed above, use train_new_loss.py.
+
+
+    python train_new_loss.py \
+        --train-labeled-json ./data/train_labeled.json \
+        --train-unlabeled-json ./data/train_unlabeled.json \
+        --valid-labeled-json ./data/valid.json \
+        --model Echocare_sep_dec \
+        --echo_care_ckpt ./pretrain/echocare_encoder.pth \
+        --save_path ./checkpoints_s_plqloss_cld \
+        --gpu 0 \
+        --train_epochs 100 \
+        --batch_size 2 \
