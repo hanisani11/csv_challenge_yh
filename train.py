@@ -1,4 +1,5 @@
 import argparse
+from asyncio.log import logger
 import logging
 import os
 import sys
@@ -177,6 +178,9 @@ def main():
         if is_best_cls:
             torch.save(ckpt, os.path.join(args.save_path, "best_cls.pth"))
             logger.info(f"New best classification! cls_score={cls_score:.4f} saved to best_cls.pth")
+        
+        logger.info(f'Current iter total score={total_score:.2f}\nCurrent seg_score={seg_score:.4f}\nCurrent cls_score={cls_score:.4f}\n')        
+
         # always save latest previous_best values into latest_ckpt for resume
         ckpt["previous_best_seg"] = previous_best_seg
         ckpt["previous_best_cls"] = previous_best_cls

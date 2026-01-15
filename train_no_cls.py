@@ -123,6 +123,8 @@ def main():
 
         total_score = output_dict["total_score"] # 오직 Segmentation 점수
 
+        logger.info(f'Current segmentation total score={total_score:.2f}')
+
         is_best = total_score > previous_best
         if is_best:
             previous_best = total_score
